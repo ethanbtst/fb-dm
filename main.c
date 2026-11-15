@@ -150,7 +150,16 @@ int main(int argc, char *argv[])
         
         cleanup((image *[]){&small_img, &large_img}, 2, &buffer);
 
-        execl("/usr/bin/bash", "-bash", "--login", (char *)NULL);
+        char *shell = pw->pw_shell;
+
+        char *base = strrchr(shell, '/');
+        base = (base != NULL) ? base + 1 : shell;
+
+        char argv0[256];
+        snprintf(argv0, sizeof(argv0), "-%s", base);
+
+        // execl(pw->pw_shell, "-bash", "--login", (char *)NULL);
+        execl(pw->pw_shell, base, (char *)NULL);
         perror("execl");
         return 1;
     } else {

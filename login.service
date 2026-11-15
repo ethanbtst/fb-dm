@@ -5,7 +5,7 @@ Conflicts=getty@tty2.service
 
 [Service]
 Type=simple
-ExecStart=/home/ethan/Projects/login1/image /home/ethan/Projects/login1/lilyb/1.ppm /home/ethan/Projects/login1/lilyb/2.ppm
+ExecStart=/home/ethan/Projects/fb-dm/image /home/ethan/Projects/fb-dm/lilyb/1.ppm /home/ethan/Projects/fb-dm/lilyb/2.ppm
 StandardInput=tty-force
 StandardOutput=inherit
 StandardError=inherit
