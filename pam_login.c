@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include <ncurses.h>
 #include <unistd.h>
+#include <pwd.h>
+#include "pam_login.h"
 
 struct login_data {
     const char *username;
@@ -56,42 +58,69 @@ static int custom_conv(int num_msg, const struct pam_message **msg,
     return PAM_CONV_ERR;
 }
 
-bool check_user(const char *uname, const char *passwd) {
+bool check_user(const char *uname, const char *passwd, pam_handle_t **pamh) {
     if (uname == NULL || passwd == NULL || *uname == '\0') {
         return false;
     }
 
-    pam_handle_t *pamh = NULL;
     struct login_data data = { uname, passwd };
     struct pam_conv conv = { custom_conv, &data };
 
-    int retval = pam_start("login", uname, &conv, &pamh);
+    int retval = pam_start("login", uname, &conv, pamh);
     if (retval != PAM_SUCCESS) {
         printw("PAM start failed: %s\n", pam_strerror(NULL, retval));
+        pam_end(*pamh, retval);
+        *pamh = NULL;
         return false;
     }
 
     char *tty = ttyname(STDIN_FILENO);
     if (tty != NULL) {
-        retval = pam_set_item(pamh, PAM_TTY, tty);
+        retval = pam_set_item(*pamh, PAM_TTY, tty);
     }
 
     const char *failed_stage = "pam_set_item(PAM_TTY)";
     if (retval == PAM_SUCCESS) {
         failed_stage = "pam_authenticate";
-        retval = pam_authenticate(pamh, 0);
+        retval = pam_authenticate(*pamh, 0);
     }
     if (retval == PAM_SUCCESS) {
         failed_stage = "pam_acct_mgmt";
-        retval = pam_acct_mgmt(pamh, 0);
+        retval = pam_acct_mgmt(*pamh, 0);
     }
 
     if (retval == PAM_SUCCESS) {
         printw("Login successful for %s\n", uname);
     } else {
         printw("PAM failed in %s: %s (%d)\n",
-               failed_stage, pam_strerror(pamh, retval), retval);
+               failed_stage, pam_strerror(*pamh, retval), retval);
     }
 
     return retval == PAM_SUCCESS;
+}
+
+bool setup_env(pam_handle_t *pamh, struct passwd *pw){
+    pam_set_item(pamh, PAM_TTY, ttyname(STDIN_FILENO));
+
+    /* Import PAM environment (includes XDG_RUNTIME_DIR from pam_systemd.so) */
+    char **pam_env = pam_getenvlist(pamh);
+    if (pam_env) {
+        for (size_t i = 0; pam_env[i] != NULL; i++) {
+            putenv(pam_env[i]); /* putenv takes ownership of the string */
+        }
+        free(pam_env);
+    }
+
+    if (setenv("HOME", pw->pw_dir, 1) != 0)
+        return false;
+    if (setenv("USER", pw->pw_name, 1) != 0)
+        return false;
+    if (setenv("LOGNAME", pw->pw_name, 1) != 0)
+        return false;
+    if (setenv("SHELL", pw->pw_shell, 1) != 0)
+        return false;
+    if (setenv("PATH", "/usr/local/bin:/usr/bin:/bin", 1) != 0)
+        return false;
+
+    return true;
 }
