@@ -5,17 +5,17 @@
 
 
 typedef struct {
-    int row;
     int col;
+    int row;
 } cursor;
 
 // Moves the cursor to a given location
-void move_cur(cursor *cur, int x, int y);
+void move_cur(cursor *cur, int row, int col);
 
 
 // Reads a line from the terminal into a buffer
 void readline(cursor *cur, char* buff);
 
-#define move(x, y) move_cur(cur, x, y);
+#define move(row, col) move_cur(cur, row, col);
 
 #endif

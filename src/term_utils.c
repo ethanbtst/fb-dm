@@ -3,11 +3,11 @@
 #include <string.h>
 #include "term_utils.h"
 
-void move_cur(cursor *cur, int x, int y)
+void move_cur(cursor *cur, int row, int col)
 {
-    cur->col = x;
-    cur->row = y; 
-    printf("\033[%d;%dH", x, y);
+    cur->col = col;
+    cur->row = row;
+    printf("\033[%d;%dH", row, col);
 }
 
 void readline(cursor *cur, char* buff)

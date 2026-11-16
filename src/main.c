@@ -91,17 +91,17 @@ int main(int argc, char *argv[])
     char date[255];
     char time_s[255];
 
-    printf("Welcome!"); move(cur->col + 2, right); 
+    printf("Welcome!"); move(cur->row + 2, right); 
 
     FILE *fptr = fopen("/etc/hostname", "rb");
     fscanf(fptr, "%s", hostname); 
     fclose(fptr);
-    printf("[%s]", hostname); move(cur->col + 2, right); 
+    printf("[%s]", hostname); move(cur->row + 2, right); 
 
     fptr = fopen("/proc/version", "rb");
     fscanf(fptr, "%*s %*s %s", kernel); 
     fclose(fptr);
-    printf("Kernel: %s", kernel); move(cur->col + 2, right); 
+    printf("Kernel: %s", kernel); move(cur->row + 2, right); 
 
 
     time_t t;
@@ -109,10 +109,12 @@ int main(int argc, char *argv[])
     time(&t); tmp = localtime(&t);
 
     strftime(date, sizeof(date), "%A %B %d, %Y", tmp);
-    printf("Date: %s", date); move(cur->col + 2, right); 
+    printf("Date: %s", date); move(cur->row + 2, right); 
 
     strftime(time_s, sizeof(time_s), "%R", tmp);
-    printf("Time: %s", time_s); move(cur->col + 2, right); 
+    printf("Time: %s", time_s); move(cur->row + 2, right); 
+
+    printf("Other: < %s >", "Shell"); move(cur->row + 2, right); 
 
     // Text input
     char uname[255] = {0};
