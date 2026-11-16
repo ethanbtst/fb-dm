@@ -1,3 +1,5 @@
+#ifndef LOGIN_H
+#define LOGIN_H
 #include <stdbool.h>
 
 // Performs multiple functions to check the provided password
@@ -7,3 +9,4 @@ bool check_user(const char *uname, const char *passwd, pam_handle_t **pamh);
 
 // Sets up user environment
 bool setup_env(pam_handle_t *pamh, struct passwd *pw);
+#endif

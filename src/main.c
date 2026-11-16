@@ -15,8 +15,6 @@
 #include "pam_login.h"
 #include "term_utils.h"
 
-
-
 void cleanup(image *images[], size_t image_count, struct termios *term, buffer *buffer){
     for (size_t i = 0; i < image_count; ++i){
         if (images[i] != NULL) {
@@ -29,7 +27,7 @@ void cleanup(image *images[], size_t image_count, struct termios *term, buffer *
     tcsetattr(STDIN_FILENO, TCSANOW, term);
 }
 
-void start_shell(struct passwd* pw){
+void start_shell(struct passwd *pw){
     char *shell = pw->pw_shell;
     char *base = strrchr(shell, '/');
     char argv0[256];
@@ -84,7 +82,7 @@ int main(int argc, char *argv[])
 
     // Display images
     for (int i = 0; i < sysconf(_SC_NPROCESSORS_ONLN); ++i) 
-        draw_image(buf, &small_img, i * small_img.w, 0);
+        draw_image(buf, &small_img, i *small_img.w, 0);
     draw_image(buf, &large_img, 0, small_img.h);
    
     // Info
@@ -107,7 +105,7 @@ int main(int argc, char *argv[])
 
 
     time_t t;
-    struct tm* tmp;
+    struct tm *tmp;
     time(&t); tmp = localtime(&t);
 
     strftime(date, sizeof(date), "%A %B %d, %Y", tmp);
@@ -172,7 +170,7 @@ int main(int argc, char *argv[])
         pam_setcred(pamh, PAM_DELETE_CRED);
         pam_end(pamh, PAM_SUCCESS);
     } else {
-        printf("Nope");
+        printf("Login Failed\n");
     }
     return 0;
 }

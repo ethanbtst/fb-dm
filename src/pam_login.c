@@ -14,13 +14,14 @@ struct login_data {
 
 static int custom_conv(int num_msg, const struct pam_message **msg,
                        struct pam_response **resp, void *appdata_ptr) {
-    if (num_msg <= 0 || msg == NULL || resp == NULL || appdata_ptr == NULL) {
+
+    if (num_msg <= 0 || msg == NULL || resp == NULL || appdata_ptr == NULL) 
         return PAM_CONV_ERR;
-    }
 
     const struct login_data *data = appdata_ptr;
     struct pam_response *reply = calloc(num_msg, sizeof(struct pam_response));
-    if (!reply) return PAM_BUF_ERR;
+    if (!reply) 
+        return PAM_BUF_ERR;
 
     for (int i = 0; i < num_msg; i++) {
         if (msg[i] == NULL) 
@@ -40,10 +41,9 @@ static int custom_conv(int num_msg, const struct pam_message **msg,
                 goto conversation_error;
         }
 
-        if ((msg[i]->msg_style == PAM_PROMPT_ECHO_OFF || msg[i]->msg_style == PAM_PROMPT_ECHO_ON) &&
-            reply[i].resp == NULL) {
-                goto conversation_error;
-        }
+        if ((msg[i]->msg_style == PAM_PROMPT_ECHO_OFF || msg[i]->msg_style == PAM_PROMPT_ECHO_ON) 
+            && reply[i].resp == NULL) 
+            goto conversation_error;
     }
 
     *resp = reply;
@@ -58,9 +58,9 @@ static int custom_conv(int num_msg, const struct pam_message **msg,
 }
 
 bool check_user(const char *uname, const char *passwd, pam_handle_t **pamh) {
-    if (uname == NULL || passwd == NULL || *uname == '\0') {
+    if (uname == NULL || passwd == NULL || *uname == '\0') 
         return false;
-    }
+    
 
     struct login_data data = { uname, passwd };
     struct pam_conv conv = { custom_conv, &data };
@@ -74,26 +74,12 @@ bool check_user(const char *uname, const char *passwd, pam_handle_t **pamh) {
     }
 
     char *tty = ttyname(STDIN_FILENO);
-    if (tty != NULL) {
+    if (tty != NULL) 
         retval = pam_set_item(*pamh, PAM_TTY, tty);
-    }
-
-    const char *failed_stage = "pam_set_item(PAM_TTY)";
-    if (retval == PAM_SUCCESS) {
-        failed_stage = "pam_authenticate";
+    if (retval == PAM_SUCCESS) 
         retval = pam_authenticate(*pamh, 0);
-    }
-    if (retval == PAM_SUCCESS) {
-        failed_stage = "pam_acct_mgmt";
+    if (retval == PAM_SUCCESS) 
         retval = pam_acct_mgmt(*pamh, 0);
-    }
-
-    if (retval == PAM_SUCCESS) {
-        printf("Login successful for %s\n", uname);
-    } else {
-        printf("PAM failed in %s: %s (%d)\n",
-               failed_stage, pam_strerror(*pamh, retval), retval);
-    }
 
     return retval == PAM_SUCCESS;
 }
@@ -104,9 +90,9 @@ bool setup_env(pam_handle_t *pamh, struct passwd *pw){
     /* Import PAM environment (includes XDG_RUNTIME_DIR from pam_systemd.so) */
     char **pam_env = pam_getenvlist(pamh);
     if (pam_env) {
-        for (size_t i = 0; pam_env[i] != NULL; i++) {
+        for (size_t i = 0; pam_env[i] != NULL; i++) 
             putenv(pam_env[i]); /* putenv takes ownership of the string */
-        }
+
         free(pam_env);
     }
 

@@ -14,22 +14,18 @@
 
 bool create_buffer(buffer *fb, const char *device)
 {
-    if (fb == NULL || device == NULL)
-    {
+    if (fb == NULL || device == NULL) 
         return false;
-    }
-
+    
     *fb = (buffer){.fd = -1};
     fb->fd = open(device, O_RDWR);
-    if (fb->fd == -1)
-    {
+    if (fb->fd == -1) {
         perror("Failed to open framebuffer device");
         return false;
     }
 
     struct fb_var_screeninfo vinfo;
-    if (ioctl(fb->fd, FBIOGET_VSCREENINFO, &vinfo) == -1)
-    {
+    if (ioctl(fb->fd, FBIOGET_VSCREENINFO, &vinfo) == -1) {
         perror("Failed to get variable screen info");
         close(fb->fd);
         fb->fd = -1;
@@ -37,8 +33,7 @@ bool create_buffer(buffer *fb, const char *device)
     }
 
     struct fb_fix_screeninfo finfo;
-    if (ioctl(fb->fd, FBIOGET_FSCREENINFO, &finfo) == -1)
-    {
+    if (ioctl(fb->fd, FBIOGET_FSCREENINFO, &finfo) == -1) {
         perror("Failed to get fixed screen info");
         close(fb->fd);
         fb->fd = -1;
@@ -53,8 +48,7 @@ bool create_buffer(buffer *fb, const char *device)
     fb->fbp = mmap(NULL, fb->screensize, PROT_READ | PROT_WRITE,
                    MAP_SHARED, fb->fd, 0);
 
-    if (fb->fbp == MAP_FAILED)
-    {
+    if (fb->fbp == MAP_FAILED) {
         perror("Failed to mmap framebuffer device");
         fb->fbp = NULL;
         close(fb->fd);
@@ -69,15 +63,10 @@ void destroy_buffer(buffer *fb)
 {
     if (fb == NULL)
         return;
-    
-
     if (fb->fbp != NULL)
         munmap(fb->fbp, fb->screensize);
-    
-
     if (fb->fd != -1)
         close(fb->fd);
-    
 
     *fb = (buffer){.fd = -1};
     fb->fd = -1;
@@ -87,8 +76,7 @@ bool load_ppm(image *image, const char *filename)
 {
     FILE *fptr = fopen(filename, "rb");
 
-    if (!fptr)
-    {
+    if (!fptr) {
         perror("Failed to open PPM");
         return false;
     }
@@ -137,11 +125,13 @@ void draw_image(buffer *fb, const image *img, int x_offset, int y_offset)
     int bytes_per_pixel = fb->bpp / 8;
     for (int sy = 0; sy < img->h; sy++) {
         int dy = sy + y_offset;
-        if (dy < 0 || dy >= fb->h) continue;
+        if (dy < 0 || dy >= fb->h) 
+            continue;
 
         for (int sx = 0; sx < img->w; sx++) {
             int dx = sx + x_offset;
-            if (dx < 0 || dx >= fb->w) continue;
+            if (dx < 0 || dx >= fb->w)
+                continue;
            
             size_t location = (size_t)dy * fb->line_length +
                               (size_t)dx * bytes_per_pixel;

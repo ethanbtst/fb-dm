@@ -1,3 +1,5 @@
+#ifndef IMAGE_H
+#define IMAGE_H
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -37,3 +39,5 @@ bool load_ppm(image *img, const char *filename);
 
 // Draws a given image onto a given framebuffer
 void draw_image(buffer *buffer, const image *image, int x_offset, int y_offset);
+
+#endif
