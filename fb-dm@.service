@@ -11,6 +11,7 @@ StandardInput=tty
 TTYPath=/dev/%I
 TTYReset=yes
 TTYVHangup=yes
+Restart=always
 
 [Install]
 WantedBy=multi-user.target

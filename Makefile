@@ -2,13 +2,13 @@
 
 CC = gcc
 PKG_CONFIG ?= pkg-config
-PKGS = ncurses pam
+PKGS = pam
 
 CFLAGS := -Wall -Wextra ${shell $(PKG_CONFIG) --cflags $(PKGS)}
 LDLIBS := $(shell $(PKG_CONFIG) --libs $(PKGS))
 
 TARGET = fb-dm
-SRCS = src/main.c src/image.c src/pam_login.c
+SRCS = src/main.c src/image.c src/term_utils.c src/pam_login.c
 OBJS = $(SRCS:.c=.o)
 
 all: $(TARGET)

@@ -8,35 +8,16 @@
 #include <pwd.h>
 #include <sys/ioctl.h>
 
-#include <ncurses.h>
-#include <term.h>
 #include <security/pam_appl.h>
+#include <termios.h>
 
 #include "image.h"
 #include "pam_login.h"
+#include "term_utils.h"
 
-void readline(char* buff, bool show){
-    int ch;
-        while ((ch = getch()) != '\n'){
-        if (ch >= 32 && ch <= 126){
-            strcat(buff, (char *)&ch);
-            if (show) printw("%c", ch);
-            else printw("*");
 
-        } else if (ch == '\b' || ch == 127 || ch == KEY_BACKSPACE){
-            if (strnlen(buff, sizeof(buff)) == 0) 
-                continue;
-            buff[strlen(buff) - 1] = 0;
-            move(getcury(stdscr), getcurx(stdscr) - 1);
-            printw(" ");
-            move(getcury(stdscr), getcurx(stdscr) - 1);
-        }
-    }
-    buff[strlen(buff)] = '\0';
-    printw("\n");
-}
 
-void cleanup(image *images[], size_t image_count, buffer *buffer){
+void cleanup(image *images[], size_t image_count, struct termios *term, buffer *buffer){
     for (size_t i = 0; i < image_count; ++i){
         if (images[i] != NULL) {
             free(images[i]->data);
@@ -45,25 +26,21 @@ void cleanup(image *images[], size_t image_count, buffer *buffer){
     }
 
     destroy_buffer(buffer);
-    int x = getcurx(stdscr);
-    int y = getcury(stdscr);
-    endwin();
-    printf("\033[%d;%dH", y + 1, x + 1);
-    fflush(stdout);
+    tcsetattr(STDIN_FILENO, TCSANOW, term);
 }
 
 void start_shell(struct passwd* pw){
     char *shell = pw->pw_shell;
     char *base = strrchr(shell, '/');
-    base = (base != NULL) ? base + 1 : shell;
     char argv0[256];
-    snprintf(argv0, sizeof(argv0), "-%s", base);
-
+    
     if (chdir(pw->pw_dir) != 0) {
         perror("chdir");
         exit(EXIT_FAILURE);
     }
-    // execlp(, argv0, (char *)NULL);
+    
+    base = (base != NULL) ? base + 1 : shell;
+    snprintf(argv0, sizeof(argv0), "-%s", base);
     execl(pw->pw_shell, pw->pw_shell, "--login", (char *)NULL);
     perror("execl");
     exit(EXIT_FAILURE);
@@ -76,14 +53,18 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // Leave text after program exit
-    setupterm(NULL, STDOUT_FILENO, NULL);
-    enter_ca_mode = NULL;
-    exit_ca_mode = NULL;
-    initscr();
-    curs_set(2);
-    cbreak();
-    noecho();
+    printf("\033[2J\033[H");
+    fflush(stdout);
+    struct termios term_normal, term_no_echo;
+    cursor *cur = &(cursor){1,1};
+
+    // Get current terminal attributes
+    tcgetattr(STDIN_FILENO, &term_normal);
+    term_no_echo = term_normal;
+
+    // Disable ECHO
+    term_no_echo.c_lflag &= ~ECHO;
+    
 
     buffer buffer = {0};
     if (!create_buffer(&buffer, "/dev/fb0")) 
@@ -91,7 +72,7 @@ int main(int argc, char *argv[])
 
     image small_img, large_img;
     if (!load_ppm(&small_img, argv[1]) || !load_ppm(&large_img, argv[2])){
-        cleanup((image *[]){&small_img, &large_img}, 2, &buffer);
+        cleanup((image *[]){&small_img, &large_img}, 2,  &term_normal, &buffer);
         return 1;
     }
 
@@ -103,7 +84,6 @@ int main(int argc, char *argv[])
 
     int right = large_img.w/font_width + 2;
     move((small_img.h/font_height) + 2, right);
-    refresh();
 
     // Display images
     for (int i = 0; i < sysconf(_SC_NPROCESSORS_ONLN); ++i) 
@@ -116,17 +96,17 @@ int main(int argc, char *argv[])
     char date[255];
     char time_s[255];
 
-    printw("Welcome!"); move(getcury(stdscr) + 2, right); 
+    printf("Welcome!"); move(cur->col + 2, right); 
 
     FILE *fptr = fopen("/etc/hostname", "rb");
     fscanf(fptr, "%s", hostname); 
     fclose(fptr);
-    printw("[%s]", hostname); move(getcury(stdscr) + 2, right); 
+    printf("[%s]", hostname); move(cur->col + 2, right); 
 
     fptr = fopen("/proc/version", "rb");
     fscanf(fptr, "%*s %*s %s", kernel); 
     fclose(fptr);
-    printw("Kernel: %s", kernel); move(getcury(stdscr) + 2, right); 
+    printf("Kernel: %s", kernel); move(cur->col + 2, right); 
 
 
     time_t t;
@@ -134,22 +114,23 @@ int main(int argc, char *argv[])
     time(&t); tmp = localtime(&t);
 
     strftime(date, sizeof(date), "%A %B %d, %Y", tmp);
-    printw("Date: %s", date); move(getcury(stdscr) + 2, right); 
+    printf("Date: %s", date); move(cur->col + 2, right); 
 
     strftime(time_s, sizeof(time_s), "%R", tmp);
-    printw("Time: %s", time_s); move(getcury(stdscr) + 2, right); 
+    printf("Time: %s", time_s); move(cur->col + 2, right); 
 
     // Text input
     char uname[255] = {0};
     char passwd[255] = {0};
 
     move((small_img.h + large_img.h) / font_height, 0);
-    printw("%s login: ", hostname);
-    readline(uname, true);
+    printf("%s login: ", hostname);
+    readline(cur, uname);
 
-    printw("password: ");
-    readline(passwd, false);
-    printw("\n");
+    tcsetattr(STDIN_FILENO, TCSANOW, &term_no_echo);
+    printf("password: ");
+    readline(cur, passwd);
+    printf("\n");
     
     // Auth
     pam_handle_t *pamh = NULL;
@@ -186,14 +167,14 @@ int main(int argc, char *argv[])
             return 1;
         }
 
-        cleanup((image *[]){&small_img, &large_img}, 2, &buffer);
+        cleanup((image *[]){&small_img, &large_img}, 2,  &term_normal, &buffer);
         start_shell(pw);
         
         pam_close_session(pamh, PAM_SILENT);
         pam_setcred(pamh, PAM_DELETE_CRED);
         pam_end(pamh, PAM_SUCCESS);
     } else {
-        printw("Nope");
+        printf("Nope");
     }
     return 0;
 }

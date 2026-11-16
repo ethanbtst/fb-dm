@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include <ncurses.h>
 #include <unistd.h>
 #include <pwd.h>
 #include "pam_login.h"
@@ -68,7 +67,7 @@ bool check_user(const char *uname, const char *passwd, pam_handle_t **pamh) {
 
     int retval = pam_start("login", uname, &conv, pamh);
     if (retval != PAM_SUCCESS) {
-        printw("PAM start failed: %s\n", pam_strerror(NULL, retval));
+        printf("PAM start failed: %s\n", pam_strerror(NULL, retval));
         pam_end(*pamh, retval);
         *pamh = NULL;
         return false;
@@ -90,9 +89,9 @@ bool check_user(const char *uname, const char *passwd, pam_handle_t **pamh) {
     }
 
     if (retval == PAM_SUCCESS) {
-        printw("Login successful for %s\n", uname);
+        printf("Login successful for %s\n", uname);
     } else {
-        printw("PAM failed in %s: %s (%d)\n",
+        printf("PAM failed in %s: %s (%d)\n",
                failed_stage, pam_strerror(*pamh, retval), retval);
     }
 
