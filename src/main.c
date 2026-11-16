@@ -53,43 +53,40 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    printf("\033[2J\033[H");
-    fflush(stdout);
-    struct termios term_normal, term_no_echo;
     cursor *cur = &(cursor){1,1};
+    printf("\033[2J\033[H");
+    move(100, 2);
+    fflush(stdout);
 
-    // Get current terminal attributes
+    struct termios term_normal, term_no_echo;
     tcgetattr(STDIN_FILENO, &term_normal);
     term_no_echo = term_normal;
-
-    // Disable ECHO
     term_no_echo.c_lflag &= ~ECHO;
-    
 
-    buffer buffer = {0};
-    if (!create_buffer(&buffer, "/dev/fb0")) 
+    buffer *buf = &(buffer){ .fbp = NULL };
+    if (!create_buffer(buf, "/dev/fb0")) 
         return 1;
 
     image small_img, large_img;
     if (!load_ppm(&small_img, argv[1]) || !load_ppm(&large_img, argv[2])){
-        cleanup((image *[]){&small_img, &large_img}, 2,  &term_normal, &buffer);
+        cleanup((image *[]){&small_img, &large_img}, 2,  &term_normal, buf);
         return 1;
     }
 
     // Positioning 
     struct winsize w;
     ioctl(STDERR_FILENO, TIOCGWINSZ, &w);
-    int font_height = buffer.h / w.ws_row;
-    int font_width = buffer.w / w.ws_col;
+    int font_height = buf->h / w.ws_row;
+    int font_width = buf->w / w.ws_col;
 
     int right = large_img.w/font_width + 2;
     move((small_img.h/font_height) + 2, right);
 
     // Display images
     for (int i = 0; i < sysconf(_SC_NPROCESSORS_ONLN); ++i) 
-        draw_image(&buffer, &small_img, i * small_img.w, 0);
-    draw_image(&buffer, &large_img, 0, small_img.h);
-    
+        draw_image(buf, &small_img, i * small_img.w, 0);
+    draw_image(buf, &large_img, 0, small_img.h);
+   
     // Info
     char hostname[255];
     char kernel[255];
@@ -123,6 +120,7 @@ int main(int argc, char *argv[])
     char uname[255] = {0};
     char passwd[255] = {0};
 
+    tcsetattr(STDIN_FILENO, TCSANOW, &term_normal);
     move((small_img.h + large_img.h) / font_height, 0);
     printf("%s login: ", hostname);
     readline(cur, uname);
@@ -167,7 +165,7 @@ int main(int argc, char *argv[])
             return 1;
         }
 
-        cleanup((image *[]){&small_img, &large_img}, 2,  &term_normal, &buffer);
+        cleanup((image *[]){&small_img, &large_img}, 2,  &term_normal, buf);
         start_shell(pw);
         
         pam_close_session(pamh, PAM_SILENT);
