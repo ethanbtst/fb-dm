@@ -4,7 +4,7 @@ CC = gcc
 PKG_CONFIG ?= pkg-config
 PKGS = pam
 
-CFLAGS := -Wall -Wextra ${shell $(PKG_CONFIG) --cflags $(PKGS)}
+CFLAGS := -Wall -g -Wextra ${shell $(PKG_CONFIG) --cflags $(PKGS)}
 LDLIBS := $(shell $(PKG_CONFIG) --libs $(PKGS))
 
 TARGET = fb-dm
@@ -27,6 +27,7 @@ uninstall:
 
 install:
 	mkdir -p /opt/fb-dm
-	cp fb-dm /opt/fb-dm/fb-dm
-	cp -r lilyb /opt/fb-dm/lilyb
-	cp fb-dm@.service /usr/lib/systemd/system/fb-dm@.service
+	cp -f fb-dm /opt/fb-dm
+	cp -rf img /opt/fb-dm
+	cp config.ini /opt/fb-dm
+	cp -f fb-dm@.service /usr/lib/systemd/system
