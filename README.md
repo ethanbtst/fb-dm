@@ -35,12 +35,6 @@ By default the images shown are the penguins found when booting the
 system (if enabled when building the kernel). The big image will be
 your distro (only Arch right now).
 
-Modifiable values:</br>
-top_text takes a string</br>
-hostname/kernel takes `true/false` to enable/disable it</br>
-data/time takes a `strftime` format 
-
-
 Default config: 
 ```
 small_pic = path to image
@@ -61,7 +55,8 @@ time      = strftime format
 ## Todo
 - Add selection of wayland/x11 sessions (Currently starts shell and users need to startx/wayland session equivalent)
 - Add jpeg/png support and scaling of images (Images need to be scaled already)
-- Better customization
+- Better customization (probably add more distros)
+- Try using DRM for KMSCON support
 - Refactor
 - Make a better makefile
 - Something else I want
