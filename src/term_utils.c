@@ -1,7 +1,23 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+#include <termios.h>
+#include <unistd.h>
 #include "term_utils.h"
+
+cursor *cur = &(cursor){1,1};
+struct termios current_term;
+struct termios saved_term;
+
+void setup_term()
+{ 
+    printf("\033[2J\033[H");
+    move(100, 2);
+    fflush(stdout);
+
+    tcgetattr(STDIN_FILENO, &current_term);
+    saved_term = current_term;
+}
 
 void move_cur(cursor *cur, int row, int col)
 {

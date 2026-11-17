@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
+#include <locale.h>
 
 #include <grp.h>
 #include <pwd.h>
@@ -46,20 +47,15 @@ void start_shell(struct passwd *pw){
 
 int main(int argc, char *argv[])
 {
+    setlocale(LC_ALL, "");
+
     if (argc != 3) {
         fprintf(stderr, "Usage: %s <small.ppm> <large.ppm>\n", argv[0]);
         return 1;
     }
 
-    cursor *cur = &(cursor){1,1};
-    printf("\033[2J\033[H");
-    move(100, 2);
-    fflush(stdout);
+    setup_term();
 
-    struct termios term_normal, term_no_echo;
-    tcgetattr(STDIN_FILENO, &term_normal);
-    term_no_echo = term_normal;
-    term_no_echo.c_lflag &= ~ECHO;
 
     buffer *buf = &(buffer){ .fbp = NULL };
     if (!create_buffer(buf, "/dev/fb0")) 
@@ -67,7 +63,7 @@ int main(int argc, char *argv[])
 
     image small_img, large_img;
     if (!load_ppm(&small_img, argv[1]) || !load_ppm(&large_img, argv[2])){
-        cleanup((image *[]){&small_img, &large_img}, 2,  &term_normal, buf);
+        cleanup((image *[]){&small_img, &large_img}, 2,  &saved_term, buf);
         return 1;
     }
 
@@ -103,7 +99,6 @@ int main(int argc, char *argv[])
     fclose(fptr);
     printf("Kernel: %s", kernel); move(cur->row + 2, right); 
 
-
     time_t t;
     struct tm *tmp;
     time(&t); tmp = localtime(&t);
@@ -120,16 +115,18 @@ int main(int argc, char *argv[])
     char uname[255] = {0};
     char passwd[255] = {0};
 
-    tcsetattr(STDIN_FILENO, TCSANOW, &term_normal);
+    // tcsetattr(STDIN_FILENO, TCSANOW, &current_term);
     move((small_img.h + large_img.h) / font_height, 0);
     printf("%s login: ", hostname);
     readline(cur, uname);
 
-    tcsetattr(STDIN_FILENO, TCSANOW, &term_no_echo);
+    // tcsetattr(STDIN_FILENO, TCSANOW, &current_term);
     printf("password: ");
+    no_echo();
     readline(cur, passwd);
     printf("\n");
-    
+    echo();
+
     // Auth
     pam_handle_t *pamh = NULL;
     if (check_user(uname, passwd, &pamh)){
@@ -165,7 +162,7 @@ int main(int argc, char *argv[])
             return 1;
         }
 
-        cleanup((image *[]){&small_img, &large_img}, 2,  &term_normal, buf);
+        cleanup((image *[]){&small_img, &large_img}, 2,  &saved_term, buf);
         start_shell(pw);
         
         pam_close_session(pamh, PAM_SILENT);
