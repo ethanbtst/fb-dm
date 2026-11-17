@@ -35,9 +35,9 @@ By default the images shown are the penguins found when booting the
 system (if enabled when building the kernel). The big image will be
 your distro (only Arch right now).
 
-Modifiable values:\
-top_text takes a string\
-hostname/kernel takes `true/false` to enable/disable it\
+Modifiable values:</br>
+top_text takes a string</br>
+hostname/kernel takes `true/false` to enable/disable it</br>
 data/time takes a `strftime` format 
 
 
