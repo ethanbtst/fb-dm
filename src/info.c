@@ -64,16 +64,17 @@ void session_info(session *sessions, int session_cur, int count)
 		   sessions[session_cur].name);
 }
 
-void set_brightness_values(){
+void set_brightness_values()
+{
 	glob_t backlight_file = { 0 };
 
-	int glob_result = glob("/sys/class/backlight/*/max_brightness",
-						   GLOB_ERR, NULL, &backlight_file);
+	int glob_result = glob("/sys/class/backlight/*/max_brightness", GLOB_ERR,
+						   NULL, &backlight_file);
 	if (glob_result == GLOB_NOMATCH)
 		return;
 
-	glob_result = glob("/sys/class/backlight/*/brightness", GLOB_ERR | GLOB_APPEND, NULL,
-						   &backlight_file);
+	glob_result = glob("/sys/class/backlight/*/brightness",
+					   GLOB_ERR | GLOB_APPEND, NULL, &backlight_file);
 	if (glob_result == GLOB_NOMATCH)
 		return;
 
@@ -87,7 +88,7 @@ void set_brightness_values(){
 
 	globfree(&backlight_file);
 
-	brightness_delta = ((5*max_brightness)/100);
+	brightness_delta = ((5 * max_brightness) / 100);
 }
 
 void update_brightness(int change)
@@ -98,7 +99,7 @@ void update_brightness(int change)
 						   &backlight_file);
 	if (glob_result == GLOB_NOMATCH)
 		return;
-		
+
 	brightness += (change * brightness_delta);
 	if (brightness < 0)
 		brightness = 0;

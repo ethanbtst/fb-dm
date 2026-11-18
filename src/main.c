@@ -73,13 +73,13 @@ int main()
 	sessions = get_sessions(&session_count);
 	session_cur = (int)session_count;
 	session_info(sessions, session_cur, session_count);
-	
+
 	move(((small_img.h + large_img.h) / font_height) + 1, 0);
 	printf("[F1] Shutdown [F2] Reboot ");
 
-	if (opt_brightness){
-			set_brightness_values();
-			printf("[F3] Increase brightness [F3] Decrease brightness\n\n");
+	if (opt_brightness) {
+		set_brightness_values();
+		printf("[F3] Increase brightness [F3] Decrease brightness\n\n");
 	} else
 		printf("\n\n");
 
