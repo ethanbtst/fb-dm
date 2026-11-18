@@ -1,4 +1,4 @@
-# .DEFAULT_GOAL := build
+# .DEFAULT_GOAL := all
 
 CC = gcc
 PKG_CONFIG ?= pkg-config
@@ -18,6 +18,8 @@ SRCS = $(wildcard $(CDIR)/*.c)
 OBJS = $(SRCS:$(CDIR)/%.c=$(BDIR)/%.o)
 
 all: $(TARGET)
+
+.PHONY: all clean install uninstall
 
 $(TARGET): $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)

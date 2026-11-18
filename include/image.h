@@ -3,29 +3,26 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-typedef struct
-{
-    uint8_t r;
-    uint8_t g;
-    uint8_t b;
+typedef struct {
+	uint8_t r;
+	uint8_t g;
+	uint8_t b;
 } pixel;
 
-typedef struct
-{
-    int w;
-    int h;
-    pixel *data;
+typedef struct {
+	int w;
+	int h;
+	pixel *data;
 } image;
 
-typedef struct
-{
-    char *fbp;
-    int fd;
-    int w;
-    int h;
-    int line_length;
-    int bpp;
-    int screensize;
+typedef struct {
+	char *fbp;
+	int fd;
+	int w;
+	int h;
+	int line_length;
+	int bpp;
+	int screensize;
 } buffer;
 
 // Opens and maps a framebuffer device
