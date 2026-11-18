@@ -22,8 +22,10 @@ session *get_sessions(size_t *session_count)
 	int glob_result = glob("/usr/share/xsessions/*", GLOB_ERR, NULL, &paths);
 	if (glob_result == GLOB_NOMATCH)
 		glob_result = 0;
-	if (glob_result != 0)
-		return NULL;
+	if (glob_result != 0) {
+		globfree(&paths);
+		paths = (glob_t){ 0 };
+	}
 
 	glob_result = glob("/usr/share/wayland-sessions/*", GLOB_ERR | GLOB_APPEND,
 					   NULL, &paths);
@@ -31,7 +33,7 @@ session *get_sessions(size_t *session_count)
 		glob_result = 0;
 	if (glob_result != 0) {
 		globfree(&paths);
-		return NULL;
+		paths = (glob_t){ 0 };
 	}
 
 	session *sessions = calloc(paths.gl_pathc + 1, sizeof(*sessions));
