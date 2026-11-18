@@ -54,9 +54,10 @@ int main()
 	draw_image(buf, &large_img, 0, small_img.h);
 
 	// Info printing
-	printf("%s", opt_top_text);
-	move(cur->row + 2, right);
-
+	if (strlen(opt_top_text) != 0){
+		printf("%s", opt_top_text);
+		move(cur->row + 2, right);
+	}
 	if (opt_hostname)
 		file_info("/etc/hostname", "%254s", "[%s]");
 	if (opt_kernel)
@@ -67,11 +68,14 @@ int main()
 		time_info("Time", opt_time);
 	if (opt_battery)
 		battery_info();
+
 	// Session Picking
+
 	session_row = cur->row;
 	session_col = cur->col;
 	sessions = get_sessions(&session_count);
-	session_cur = (int)session_count;
+	if ((session_cur = get_session_index(session_count)) == -1)
+		session_cur = (int)session_count;
 	session_info(sessions, session_cur, session_count);
 
 	move(((small_img.h + large_img.h) / font_height) + 1, 0);
@@ -110,6 +114,8 @@ int main()
 			return 1;
 		}
 
+		set_session_index(session_cur);
+		
 		if (initgroups(pw->pw_name, pw->pw_gid) != 0 ||
 			setgid(pw->pw_gid) != 0 || setuid(pw->pw_uid) != 0) {
 			perror("privilege drop failed");

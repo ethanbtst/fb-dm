@@ -21,5 +21,7 @@ session copy_session(const session *source);
 void free_session(session *session_info);
 void free_sessions(session *session_list, size_t count);
 void start_session(struct passwd *pw, const session *selected);
+int get_session_index(int session_count);
+void set_session_index(int session_cur);
 
 #endif
