@@ -16,14 +16,7 @@
 
 int main()
 {
-	// Default Config
-	strcpy(opt_small_pic, "/opt/fb-dm/img/logo_linux_clut224.ppm");
-	strcpy(opt_big_pic, "distro");
-	strcpy(opt_top_text, "Welcome!");
-	opt_hostname = true;
-	opt_kernel = true;
-	strcpy(opt_date, "%A %B %d, %Y");
-	strcpy(opt_time, "%R");
+	default_config();
 
 	setup_term();
 	get_config();
@@ -64,11 +57,16 @@ int main()
 	printf("%s", opt_top_text);
 	move(cur->row + 2, right);
 
-	file_info("/etc/hostname", "%254s", "[%s]");
-	file_info("/proc/version", "%*s %*s %254s", "Kernel: %s");
-	time_info("Date", opt_date);
-	time_info("Time", opt_time);
-
+	if (opt_hostname)
+		file_info("/etc/hostname", "%254s", "[%s]");
+	if (opt_kernel)
+		file_info("/proc/version", "%*s %*s %254s", "Kernel: %s");
+	if (strlen(opt_date) != 0)
+		time_info("Date", opt_date);
+	if (strlen(opt_time) != 0)
+		time_info("Time", opt_time);
+	if (opt_battery)
+		battery_info();
 	// Session Picking
 	session_row = cur->row;
 	session_col = cur->col;
@@ -77,8 +75,13 @@ int main()
 	session_info(sessions, session_cur, session_count);
 	
 	move(((small_img.h + large_img.h) / font_height) + 1, 0);
-	printf("[F1] Shutdown [F2] Reboot \n\n");
-			// "[F3] Increase brightness [F3] Decrease brightness\n\n"); TODO
+	printf("[F1] Shutdown [F2] Reboot ");
+
+	if (opt_brightness){
+			set_brightness_values();
+			printf("[F3] Increase brightness [F3] Decrease brightness\n\n");
+	} else
+		printf("\n\n");
 
 	// Text input
 	input_buffer in[2];

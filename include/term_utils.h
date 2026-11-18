@@ -45,6 +45,8 @@ void toggle_echo(bool enabled);
 #define KEY_RIGHT 		0x102
 #define KEY_F1 			0x103
 #define KEY_F2 			0x104
+#define KEY_F3 			0x105
+#define KEY_F4 			0x106
 #define clear_line() 	printf("\x1b[K")
 #define move(row, col) 	move_cur(cur, row, col);
 #define echo()             \

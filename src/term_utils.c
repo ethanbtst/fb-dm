@@ -1,6 +1,7 @@
 #include "term_utils.h"
 #include "sessions.h"
 #include "info.h"
+#include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -152,6 +153,10 @@ int readkey(void)
 		return KEY_F1;
 	if (sequence[0] == 'O' && sequence[1] == 'Q')
 		return KEY_F2;
+	if (sequence[0] == 'O' && sequence[1] == 'R')
+		return KEY_F3;
+	if (sequence[0] == 'O' && sequence[1] == 'S')
+		return KEY_F4;
 	if (sequence[0] == '[' && sequence[1] == 'D')
 		return KEY_LEFT;
 	if (sequence[0] == '[' && sequence[1] == 'C')
@@ -163,6 +168,10 @@ int readkey(void)
 			return KEY_F1;
 		if (ch == 'B')
 			return KEY_F2;
+		if (ch == 'C')
+			return KEY_F3;
+		if (ch == 'D')
+			return KEY_F4;
 		return '\033';
 	}
 	if (sequence[0] == '[' && sequence[1] == '1' &&
@@ -172,6 +181,10 @@ int readkey(void)
 			return KEY_F1;
 		if (suffix[0] == '2')
 			return KEY_F2;
+		if (suffix[0] == '3')
+			return KEY_F3;
+		if (suffix[0] == '4')
+			return KEY_F4;
 	}
 	return ch;
 }
@@ -232,6 +245,20 @@ void key_loop(input_buffer *input_buffers, size_t input_count)
 
 		case KEY_F2:
 			system("reboot");
+			break;
+
+		case KEY_F3:
+			echo();
+			if (opt_brightness)
+				update_brightness(1);
+			no_echo();
+			break;
+
+		case KEY_F4:
+			echo();
+			if (opt_brightness)
+				update_brightness(-1);
+			no_echo();
 			break;
 
 		default:

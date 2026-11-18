@@ -12,6 +12,21 @@ bool opt_kernel;
 char opt_top_text[255];
 char opt_date[255];
 char opt_time[255];
+bool opt_battery;
+bool opt_brightness;
+
+void default_config()
+{
+	strcpy(opt_small_pic, "/opt/fb-dm/img/logo_linux_clut224.ppm");
+	strcpy(opt_big_pic, "distro");
+	strcpy(opt_top_text, "Welcome!");
+	opt_hostname = true;
+	opt_kernel = true;
+	strcpy(opt_date, "%A %B %d, %Y");
+	strcpy(opt_time, "%R");
+	opt_battery = false;
+	opt_brightness = false;
+}
 
 void set_distro_logo()
 {
@@ -71,6 +86,14 @@ void get_config()
 
 		if (strcmp(option, "time") == 0)
 			strcpy(opt_time, value);
+
+		if (strcmp(option, "battery") == 0)
+			if (strcmp(value, "true") == 0)
+				opt_battery = true;
+
+		if (strcmp(option, "brightness") == 0)
+			if (strcmp(value, "true") == 0)
+				opt_brightness = true;
 	}
 
 	fclose(fd);
