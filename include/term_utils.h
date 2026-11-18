@@ -24,7 +24,7 @@ void move_cur(cursor *cur, int row, int col);
 // Reads a line from the terminal into a buffer
 void readline(cursor *cur, char *buff);
 
-// Reads one terminal key, including left/right arrow escape sequences
+// Reads one terminal key, including navigation and function-key escape sequences
 int readkey(void);
 
 // Queries the terminal for the current cursor position
@@ -39,11 +39,14 @@ void key_loop(input_buffer *input_buffers, size_t input_count);
 
 void toggle_echo(bool enabled);
 
-#define clear_line() printf("\x1b[K")
-#define KEY_BACKSPACE 127
-#define KEY_LEFT 0x101
-#define KEY_RIGHT 0x102
-#define move(row, col) move_cur(cur, row, col);
+
+#define KEY_BACKSPACE 	127
+#define KEY_LEFT		0x101
+#define KEY_RIGHT 		0x102
+#define KEY_F1 			0x103
+#define KEY_F2 			0x104
+#define clear_line() 	printf("\x1b[K")
+#define move(row, col) 	move_cur(cur, row, col);
 #define echo()             \
 	{                      \
 		toggle_echo(true); \

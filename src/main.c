@@ -75,13 +75,16 @@ int main()
 	sessions = get_sessions(&session_count);
 	session_cur = (int)session_count;
 	session_info(sessions, session_cur, session_count);
+	
+	move(((small_img.h + large_img.h) / font_height) + 1, 0);
+	printf("[F1] Shutdown [F2] Reboot \n\n");
+			// "[F3] Increase brightness [F3] Decrease brightness\n\n"); TODO
 
 	// Text input
 	input_buffer in[2];
 	in[0] = (input_buffer){ "login", { 0 }, true };
 	in[1] = (input_buffer){ "password", { 0 }, false };
 
-	move(((small_img.h + large_img.h) / font_height) + 1, 0);
 	key_loop(in, 2);
 
 	// Auth

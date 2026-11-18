@@ -137,6 +137,7 @@ int readkey(void)
 {
 	unsigned char ch;
 	unsigned char sequence[2];
+	unsigned char suffix[2];
 
 	if (read(STDIN_FILENO, &ch, 1) != 1)
 		return EOF;
@@ -147,10 +148,31 @@ int readkey(void)
 	if (read(STDIN_FILENO, sequence, 2) != 2)
 		return ch;
 
+	if (sequence[0] == 'O' && sequence[1] == 'P')
+		return KEY_F1;
+	if (sequence[0] == 'O' && sequence[1] == 'Q')
+		return KEY_F2;
 	if (sequence[0] == '[' && sequence[1] == 'D')
 		return KEY_LEFT;
 	if (sequence[0] == '[' && sequence[1] == 'C')
 		return KEY_RIGHT;
+	if (sequence[0] == '[' && sequence[1] == '[') {
+		if (read(STDIN_FILENO, &ch, 1) != 1)
+			return '\033';
+		if (ch == 'A')
+			return KEY_F1;
+		if (ch == 'B')
+			return KEY_F2;
+		return '\033';
+	}
+	if (sequence[0] == '[' && sequence[1] == '1' &&
+		read(STDIN_FILENO, suffix, sizeof(suffix)) == sizeof(suffix) &&
+		suffix[1] == '~') {
+		if (suffix[0] == '1')
+			return KEY_F1;
+		if (suffix[0] == '2')
+			return KEY_F2;
+	}
 	return ch;
 }
 
@@ -202,6 +224,14 @@ void key_loop(input_buffer *input_buffers, size_t input_count)
 
 		case KEY_RIGHT:
 			update_session(-1);
+			break;
+		
+		case KEY_F1:
+			system("poweroff");
+			break;
+
+		case KEY_F2:
+			system("reboot");
 			break;
 
 		default:
