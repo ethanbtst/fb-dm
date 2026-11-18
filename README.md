@@ -26,7 +26,7 @@ make
 sudo make install
 ```
 
-After, enable `fb-dm@tty1.service`, then disable `getty@tty1.service`
+After, disable any display manager on tty and enable `fb-dm@tty1.service`
 
 ## Customization
 To customize edit `/opt/fb-dm/config.ini`
@@ -49,7 +49,10 @@ time      = strftime format
 
 
 ## Screenshots
+### Default config
 ![Default](./assets/default.png)
+
+### Using custom ppms
 ![Custom](./assets/custom.png)
 
 ## Todo
