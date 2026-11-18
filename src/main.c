@@ -79,7 +79,7 @@ int main()
 
 	if (opt_brightness) {
 		set_brightness_values();
-		printf("[F3] Increase brightness [F3] Decrease brightness\n\n");
+		printf("[F3] Increase brightness [F4] Decrease brightness\n\n");
 	} else
 		printf("\n\n");
 
