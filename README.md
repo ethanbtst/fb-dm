@@ -56,10 +56,6 @@ time      = strftime format
 ![Custom](./assets/custom.png)
 
 ## Todo
-- Add selection of wayland/x11 sessions (Currently starts shell and users need to startx/wayland session equivalent)
 - Add jpeg/png support and scaling of images (Images need to be scaled already)
-- Better customization (probably add more distros)
-- Try using DRM for KMSCON support
-- Refactor
-- Make a better makefile
+- Try using DRM for KMSCON support?
 - Something else I want
