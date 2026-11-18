@@ -153,6 +153,10 @@ int readkey(void)
 		return KEY_F1;
 	if (sequence[0] == 'O' && sequence[1] == 'Q')
 		return KEY_F2;
+	if (sequence[0] == 'O' && sequence[1] == 'R')
+		return KEY_F3;
+	if (sequence[0] == 'O' && sequence[1] == 'S')
+		return KEY_F4;
 	if (sequence[0] == '[' && sequence[1] == 'D')
 		return KEY_LEFT;
 	if (sequence[0] == '[' && sequence[1] == 'C')
@@ -165,9 +169,9 @@ int readkey(void)
 		if (ch == 'B')
 			return KEY_F2;
 		if (ch == 'C')
-			return KEY_F1;
+			return KEY_F3;
 		if (ch == 'D')
-			return KEY_F2;
+			return KEY_F4;
 		return '\033';
 	}
 	if (sequence[0] == '[' && sequence[1] == '1' &&
@@ -178,9 +182,9 @@ int readkey(void)
 		if (suffix[0] == '2')
 			return KEY_F2;
 		if (suffix[0] == '3')
-			return KEY_F1;
+			return KEY_F3;
 		if (suffix[0] == '4')
-			return KEY_F2;
+			return KEY_F4;
 	}
 	return ch;
 }
