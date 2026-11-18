@@ -2,6 +2,7 @@
 #include "sessions.h"
 #include "term_utils.h"
 #include <stdio.h>
+#include <string.h>
 #include <time.h>
 #include <glob.h>
 
@@ -63,42 +64,80 @@ void session_info(session *sessions, int session_cur, int count)
 		   sessions[session_cur].name);
 }
 
-void set_brightness_values(){
-	glob_t backlight_file = { 0 };
+static char brightness_path[4096];
 
-	int glob_result = glob("/sys/class/backlight/*/max_brightness",
-						   GLOB_ERR, NULL, &backlight_file);
-	if (glob_result == GLOB_NOMATCH)
-		return;
+static int read_brightness(const char *path, int *value)
+{
+	FILE *fd = fopen(path, "r");
+	if (fd == NULL)
+		return 0;
 
-	max_brightness = 0;
-	FILE *fd = fopen(backlight_file.gl_pathv[0], "r");
-	fscanf(fd, "%d", &max_brightness);
+	int result = fscanf(fd, "%d", value) == 1;
 	fclose(fd);
+	return result;
+}
+
+void set_brightness_values(void)
+{
+	glob_t backlight_file = { 0 };
+	max_brightness = 0;
+	brightness_delta = 0;
+	brightness_path[0] = '\0';
+
+	int glob_result =
+		glob("/sys/class/backlight/*/brightness", GLOB_ERR, NULL,
+			 &backlight_file);
+	if (glob_result != 0 || backlight_file.gl_pathc == 0) {
+		globfree(&backlight_file);
+		return;
+	}
+
+	snprintf(brightness_path, sizeof(brightness_path), "%s",
+			 backlight_file.gl_pathv[0]);
+
+	char *slash = strrchr(brightness_path, '/');
+	if (slash == NULL) {
+		brightness_path[0] = '\0';
+		globfree(&backlight_file);
+		return;
+	}
+
+	char max_path[4096];
+	snprintf(max_path, sizeof(max_path), "%.*s/max_brightness",
+			 (int)(slash - brightness_path), brightness_path);
 	globfree(&backlight_file);
 
-	brightness_delta = ((5*max_brightness)/100);
+	if (!read_brightness(max_path, &max_brightness) || max_brightness <= 0)
+		return;
+
+	brightness_delta = (5 * max_brightness) / 100;
+	if (brightness_delta < 1)
+		brightness_delta = 1;
 }
 
 void update_brightness(int change)
 {
-	glob_t backlight_file = { 0 };
-
-	int glob_result = glob("/sys/class/backlight/amdgpu_bl1/brightness", GLOB_ERR, NULL,
-						   &backlight_file);
-	if (glob_result == GLOB_NOMATCH)
+	if (change == 0)
 		return;
-	
-	FILE *fd = fopen(backlight_file.gl_pathv[0], "rw");
-	int brightness = 0;
-	fscanf(fd, "%d", &brightness);
-	brightness = brightness + (change * brightness_delta);
+	if (brightness_path[0] == '\0')
+		set_brightness_values();
+	if (brightness_path[0] == '\0' || max_brightness <= 0)
+		return;
+
+	int brightness;
+	if (!read_brightness(brightness_path, &brightness))
+		return;
+
+	brightness += change * brightness_delta;
 	if (brightness < 0)
 		brightness = 0;
 	else if (brightness > max_brightness)
 		brightness = max_brightness;
-	fprintf(fd, "%d", brightness);
-	fclose(fd);
 
-	globfree(&backlight_file);
+	FILE *fd = fopen(brightness_path, "w");
+	if (fd == NULL)
+		return;
+
+	fprintf(fd, "%d\n", brightness);
+	fclose(fd);
 }
