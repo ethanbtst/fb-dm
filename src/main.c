@@ -67,7 +67,6 @@ int main()
 		time_info("Time", opt_time);
 	if (opt_battery)
 		battery_info();
-
 	// Session Picking
 	session_row = cur->row;
 	session_col = cur->col;
@@ -78,9 +77,10 @@ int main()
 	move(((small_img.h + large_img.h) / font_height) + 1, 0);
 	printf("[F1] Shutdown [F2] Reboot ");
 
-	if (opt_brightness)
+	if (opt_brightness){
+			set_brightness_values();
 			printf("[F3] Increase brightness [F3] Decrease brightness\n\n");
-	else
+	} else
 		printf("\n\n");
 
 	// Text input

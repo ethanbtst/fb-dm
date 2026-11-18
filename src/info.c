@@ -6,6 +6,8 @@
 #include <glob.h>
 
 char info_buff[255];
+int brightness_delta;
+int max_brightness;
 
 void file_info(char *filename, char *in_fmt, char *out_fmt)
 {
@@ -61,32 +63,42 @@ void session_info(session *sessions, int session_cur, int count)
 		   sessions[session_cur].name);
 }
 
-void update_brightness(int change)
-{
-	glob_t backlight_files = { 0 };
+void set_brightness_values(){
+	glob_t backlight_file = { 0 };
 
-	int glob_result = glob("/sys/class/backlight/*/brightness", GLOB_ERR, NULL,
-						   &backlight_files);
+	int glob_result = glob("/sys/class/backlight/*/max_brightness",
+						   GLOB_ERR, NULL, &backlight_file);
 	if (glob_result == GLOB_NOMATCH)
 		return;
 
-	glob_result = glob("/sys/class/backlight/*/brightnessmax",
-						   GLOB_ERR | GLOB_APPEND, NULL, &backlight_files);
-	if (glob_result == GLOB_NOMATCH)
-		return;
-
-	FILE *fd = fopen(backlight_files.gl_pathv[0], "r");
-	int brightness = 0;
-	fscanf(fd, "%d", &brightness);
-	fclose(fd);
-
-	fd = fopen(backlight_files.gl_pathv[1], "r");
-	int max_brightness = 0;
+	max_brightness = 0;
+	FILE *fd = fopen(backlight_file.gl_pathv[0], "r");
 	fscanf(fd, "%d", &max_brightness);
 	fclose(fd);
+	globfree(&backlight_file);
 
-	globfree(&backlight_files);
+	brightness_delta = ((5*max_brightness)/100);
+}
 
-	change = (5/100) * max_brightness * change;
-	printf("%d", change);
+void update_brightness(int change)
+{
+	glob_t backlight_file = { 0 };
+
+	int glob_result = glob("/sys/class/backlight/amdgpu_bl1/brightness", GLOB_ERR, NULL,
+						   &backlight_file);
+	if (glob_result == GLOB_NOMATCH)
+		return;
+	
+	FILE *fd = fopen(backlight_file.gl_pathv[0], "rw");
+	int brightness = 0;
+	fscanf(fd, "%d", &brightness);
+	brightness = brightness + (change * brightness_delta);
+	if (brightness < 0)
+		brightness = 0;
+	else if (brightness > max_brightness)
+		brightness = max_brightness;
+	fprintf(fd, "%d", brightness);
+	fclose(fd);
+
+	globfree(&backlight_file);
 }

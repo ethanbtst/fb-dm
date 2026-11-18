@@ -11,6 +11,8 @@ void session_info(session *sessions, int session_cur, int count);
 
 void battery_info();
 
+void set_brightness_values();
+
 void update_brightness(int change);
 
 #endif
