@@ -4,23 +4,32 @@ CC = gcc
 PKG_CONFIG ?= pkg-config
 PKGS = pam
 
-CFLAGS := -Wall -g -Wextra ${shell $(PKG_CONFIG) --cflags $(PKGS)}
+CDIR = src
+IDIR = include
+BDIR = build
+
+CPPFLAGS := -I$(IDIR) ${shell $(PKG_CONFIG) --cflags $(PKGS)}
+CFLAGS := -Wall -g -Wextra
 LDLIBS := $(shell $(PKG_CONFIG) --libs $(PKGS))
 
 TARGET = fb-dm
-SRCS = src/main.c src/image.c src/term_utils.c src/pam_login.c
-OBJS = $(SRCS:.c=.o)
+DEPS = $(wildcard $(IDIR)/*.h)
+SRCS = $(wildcard $(CDIR)/*.c)
+OBJS = $(SRCS:$(CDIR)/%.c=$(BDIR)/%.o)
 
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
-%.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+$(BDIR)/%.o: $(CDIR)/%.c $(DEPS)
+	mkdir -p $(BDIR)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(OBJS) $(TARGET)
+	rm -rf $(BDIR)
+	rm -f $(CDIR)/*.o
+	rm -f $(TARGET)
 
 uninstall:
 	rm -rf /opt/fb-dm

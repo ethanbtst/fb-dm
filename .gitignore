@@ -1,3 +1,2 @@
-image
-*.o
+build/
 fb-dm
