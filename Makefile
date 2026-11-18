@@ -9,7 +9,8 @@ IDIR = include
 BDIR = build
 
 CPPFLAGS := -I$(IDIR) ${shell $(PKG_CONFIG) --cflags $(PKGS)}
-CFLAGS := -Wall -g -Wextra
+CFLAGS := -Wall -Wextra
+DEBUG_FLAGS := -Wall -Wextra -g
 LDLIBS := $(shell $(PKG_CONFIG) --libs $(PKGS))
 
 TARGET = fb-dm
@@ -19,7 +20,7 @@ OBJS = $(SRCS:$(CDIR)/%.c=$(BDIR)/%.o)
 
 all: $(TARGET)
 
-.PHONY: all clean install uninstall
+.PHONY: all debug clean install uninstall
 
 $(TARGET): $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
@@ -27,6 +28,10 @@ $(TARGET): $(OBJS)
 $(BDIR)/%.o: $(CDIR)/%.c $(DEPS)
 	mkdir -p $(BDIR)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+
+debug:
+	$(MAKE) clean
+	$(MAKE) CFLAGS="$(DEBUG_FLAGS)" $(TARGET)
 
 clean:
 	rm -rf $(BDIR)
