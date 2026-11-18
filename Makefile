@@ -20,7 +20,7 @@ OBJS = $(SRCS:$(CDIR)/%.c=$(BDIR)/%.o)
 
 all: $(TARGET)
 
-.PHONY: all clean install uninstall
+.PHONY: all debug clean install uninstall
 
 $(TARGET): $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
@@ -30,7 +30,8 @@ $(BDIR)/%.o: $(CDIR)/%.c $(DEPS)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
 debug:
-	
+	$(MAKE) clean
+	$(MAKE) CFLAGS="$(DEBUG_FLAGS)" $(TARGET)
 
 clean:
 	rm -rf $(BDIR)
