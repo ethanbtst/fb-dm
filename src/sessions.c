@@ -206,15 +206,23 @@ void start_session(struct passwd *pw, const session *selected)
 		fprintf(stderr, "Selected session has no Exec entry\n");
 		exit(EXIT_FAILURE);
 	}
-	
+
+	if (strcasecmp(session_type, "x11") == 0) {
+		execl("/usr/bin/startx", "startx", "/bin/sh", "-c", selected->exec,
+			  (char *)NULL);
+		perror("execl");
+		exit(EXIT_FAILURE);
+	}
+
 	execl("/bin/sh", "sh", "-c", selected->exec, (char *)NULL);
 	perror("execl");
 	exit(EXIT_FAILURE);
 }
 
-int get_session_index(int session_count){
+int get_session_index(int session_count)
+{
 	FILE *fd = fopen("/opt/fb-dm/index.txt", "r");
-	if (!fd) 
+	if (!fd)
 		return -1;
 
 	int i;
@@ -223,13 +231,14 @@ int get_session_index(int session_count){
 
 	if (i >= 0 && i <= session_count)
 		return i;
-	else 
+	else
 		return -1;
 }
 
-void set_session_index(int session_cur){
+void set_session_index(int session_cur)
+{
 	FILE *fd = fopen("/opt/fb-dm/index.txt", "w");
-	if (!fd) 
+	if (!fd)
 		return;
 
 	fprintf(fd, "%d", session_cur);
