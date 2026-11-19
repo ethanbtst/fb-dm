@@ -208,18 +208,9 @@ void start_session(struct passwd *pw, const session *selected)
 	}
 
 	if (strcasecmp(session_type, "x11") == 0) {
-		size_t exec_command_size = strlen("exec ") + strlen(selected->exec) + 1;
-		char *exec_command = malloc(exec_command_size);
-		if (exec_command == NULL) {
-			perror("Failed to allocate x11 session command");
-			exit(EXIT_FAILURE);
-		}
-		// snprintf(exec_command, exec_command_size, "exec %s", selected->exec);
-		snprintf(exec_command, exec_command_size, "$(which %s)", selected->exec);
-
-		execl("/usr/bin/startx", "xinit", exec_command, (char *)NULL);
+		execl("/usr/bin/startx", "startx", "/bin/sh", "-c", selected->exec,
+			  (char *)NULL);
 		perror("execl");
-		free(exec_command);
 		exit(EXIT_FAILURE);
 	}
 
